@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Visitor Portal</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --accent: #6c63ff;
+      --accent-dim: #4b44cc;
+      --text: #e2e8f0;
+      --muted: #8892a4;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --border: rgba(108,99,255,0.18);
+      --radius: 10px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Login ── */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .login-card h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+    }
+
+    .login-card p.sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .field { margin-bottom: 1.1rem; }
+
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 0.4rem;
+    }
+
+    .field input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 0.65rem 0.85rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .field input:focus { border-color: var(--accent); }
+
+    #login-error {
+      font-size: 0.82rem;
+      color: var(--red);
+      margin-bottom: 0.9rem;
+      display: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.65rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+
+    .btn:hover { background: var(--accent-dim); }
+    .btn:active { transform: scale(0.97); }
+    .btn.full { width: 100%; justify-content: center; }
+
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn.ghost:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+
+    /* ── Dashboard ── */
+    #dashboard { display: none; }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header .brand { font-size: 1rem; font-weight: 700; color: var(--accent); }
+    header .brand span { color: var(--muted); font-weight: 400; font-size: 0.85rem; margin-left: 0.5rem; }
+
+    header .actions { display: flex; gap: 0.6rem; align-items: center; }
+
+    .countdown {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    main { max-width: 1280px; margin: 0 auto; padding: 1.5rem; }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+    }
+
+    .stat-card .label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table-header h2 { font-size: 0.95rem; font-weight: 600; }
+
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .filter-row label { display: flex; align-items: center; gap: 0.3rem; cursor: pointer; }
+    .filter-row input[type=checkbox] { accent-color: var(--accent); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    thead th {
+      background: var(--surface2);
+      padding: 0.6rem 0.9rem;
+      text-align: left;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(108,99,255,0.05); }
+
+    tbody td {
+      padding: 0.55rem 0.9rem;
+      vertical-align: middle;
+    }
+
+    .td-time { color: var(--muted); white-space: nowrap; }
+    .td-ip { font-family: monospace; font-size: 0.8rem; }
+    .td-path { font-family: monospace; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .td-ua { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.73rem;
+      font-weight: 600;
+    }
+
+    .badge-2xx { background: rgba(52,211,153,0.15); color: var(--green); }
+    .badge-3xx { background: rgba(251,191,36,0.15); color: var(--yellow); }
+    .badge-err { background: rgba(248,113,113,0.15); color: var(--red); }
+
+    .empty-row td {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 700px) {
+      .stats-bar { grid-template-columns: 1fr 1fr; }
+      .td-ua, .td-path { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Login ── -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>Admin Portal</h1>
+    <p class="sub">Sign in with your admin credentials</p>
+    <div class="field">
+      <label>Username</label>
+      <input id="username" type="text" autocomplete="username" placeholder="admin" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+    </div>
+    <p id="login-error"></p>
+    <button class="btn full" onclick="doLogin()">Sign in</button>
+    <p style="margin-top:1.2rem;font-size:0.8rem;text-align:center;">
+      <a href="/" style="color:var(--muted);text-decoration:none;">← Back to site</a>
+    </p>
+  </div>
+</div>
+
+<!-- ── Dashboard ── -->
+<div id="dashboard">
+  <header>
+    <div>
+      <span class="brand">Visitor Portal <span id="username-display"></span></span>
+    </div>
+    <div class="actions">
+      <span class="countdown" id="refresh-countdown"></span>
+      <button class="btn ghost" onclick="loadData()">↻ Refresh</button>
+      <a href="/" class="btn ghost">← Resume</a>
+      <button class="btn ghost" onclick="doLogout()">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="label">Total Requests</div>
+        <div class="value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Unique IPs</div>
+        <div class="value" id="stat-ips">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Today's Visits</div>
+        <div class="value" id="stat-today">—</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <h2>Access Log</h2>
+        <div class="filter-row">
+          <label>
+            <input type="checkbox" id="filter-noise" checked onchange="renderTable()" />
+            Hide health / favicon
+          </label>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>IP</th>
+              <th>Path</th>
+              <th>Status</th>
+              <th>User Agent</th>
+            </tr>
+          </thead>
+          <tbody id="visitor-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const API = '/api';
+  const NOISE_PATHS = ['/health', '/api/health', '/favicon.ico'];
+  const REFRESH_INTERVAL = 30; // seconds
+
+  let allVisitors = [];
+  let countdownTimer = null;
+  let secondsLeft = REFRESH_INTERVAL;
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+
+  function getToken() { return localStorage.getItem('visitor_auth_token'); }
+  function setToken(t) { localStorage.setItem('visitor_auth_token', t); }
+  function clearToken() { localStorage.removeItem('visitor_auth_token'); }
+
+  async function doLogin() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+
+    if (!username || !password) {
+      errEl.textContent = 'Please enter username and password.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errEl.textContent = data.detail || 'Login failed.';
+        errEl.style.display = 'block';
+        return;
+      }
+      if (data.role !== 'admin') {
+        errEl.textContent = 'Admin access required.';
+        errEl.style.display = 'block';
+        return;
+      }
+      setToken(data.access_token);
+      document.getElementById('username-display').textContent = `(${username})`;
+      showDashboard();
+    } catch (e) {
+      errEl.textContent = 'Network error — is the service running?';
+      errEl.style.display = 'block';
+    }
+  }
+
+  function doLogout() {
+    clearToken();
+    stopCountdown();
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('password').value = '';
+  }
+
+  // ── Data ──────────────────────────────────────────────────────────────────
+
+  async function apiFetch(path) {
+    const res = await fetch(`${API}${path}`, {
+      headers: { 'Authorization': `Bearer ${getToken()}` },
+    });
+    if (res.status === 401 || res.status === 403) {
+      doLogout();
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  async function loadData() {
+    try {
+      const [statsData, visitorsData] = await Promise.all([
+        apiFetch('/stats'),
+        apiFetch('/visitors?limit=200'),
+      ]);
+      document.getElementById('stat-total').textContent = statsData.total_requests.toLocaleString();
+      document.getElementById('stat-ips').textContent = statsData.unique_ips.toLocaleString();
+      document.getElementById('stat-today').textContent = statsData.today_visits.toLocaleString();
+      allVisitors = visitorsData.visitors || [];
+      renderTable();
+      resetCountdown();
+    } catch (e) {
+      if (e.message !== 'Unauthorized') console.error('Load error:', e);
+    }
+  }
+
+  // ── Table ─────────────────────────────────────────────────────────────────
+
+  function statusBadge(code) {
+    const cls = code >= 500 || code >= 400 ? 'badge-err' : code >= 300 ? 'badge-3xx' : 'badge-2xx';
+    return `<span class="badge ${cls}">${code}</span>`;
+  }
+
+  function fmtTime(iso) {
+    if (!iso) return '—';
+    try {
+      // nginx ISO8601: 2025-07-27T14:32:10+00:00
+      const d = new Date(iso);
+      return d.toLocaleString(undefined, {
+        month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false,
+      });
+    } catch { return iso; }
+  }
+
+  function truncate(str, n) {
+    if (!str) return '—';
+    return str.length > n ? str.slice(0, n) + '…' : str;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('visitor-tbody');
+    const filterNoise = document.getElementById('filter-noise').checked;
+
+    let rows = allVisitors;
+    if (filterNoise) {
+      rows = rows.filter(v => !NOISE_PATHS.some(p => (v.path || '').startsWith(p)));
+    }
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No entries found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map(v => `
+      <tr>
+        <td class="td-time">${fmtTime(v.time)}</td>
+        <td class="td-ip">${v.ip || '—'}</td>
+        <td class="td-path" title="${v.path || ''}">${truncate(v.path, 60)}</td>
+        <td>${statusBadge(v.status)}</td>
+        <td class="td-ua" title="${v.ua || ''}">${truncate(v.ua, 60)}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Countdown ─────────────────────────────────────────────────────────────
+
+  function resetCountdown() {
+    secondsLeft = REFRESH_INTERVAL;
+    updateCountdownDisplay();
+  }
+
+  function updateCountdownDisplay() {
+    document.getElementById('refresh-countdown').textContent = `Auto-refresh in ${secondsLeft}s`;
+  }
+
+  function stopCountdown() {
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+  }
+
+  function startCountdown() {
+    stopCountdown();
+    countdownTimer = setInterval(() => {
+      secondsLeft--;
+      updateCountdownDisplay();
+      if (secondsLeft <= 0) {
+        secondsLeft = REFRESH_INTERVAL;
+        loadData();
+      }
+    }, 1000);
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+
+  function showDashboard() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadData();
+    startCountdown();
+  }
+
+  // Enter on password field
+  document.getElementById('password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  // Check for existing token on load
+  (function init() {
+    const token = getToken();
+    if (token) {
+      // Optimistically show dashboard; apiFetch will logout if token is bad
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('login-screen').style.display = 'none';
+      showDashboard();
+    }
+  })();
+</script>
+</body>
+</html>
